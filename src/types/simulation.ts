@@ -44,6 +44,8 @@ export type SimulationSettings = {
   grainTextureEnabled: boolean;
   autoModulateEnabled: boolean;
   modulatePeriodMilliseconds: number;
+  keepBackgroundOnRandomize: boolean;
+  replacePaperOnRandomize: boolean;
   debugModeEnabled: boolean;
 };
 

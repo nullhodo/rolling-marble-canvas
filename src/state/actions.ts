@@ -110,14 +110,17 @@ export function generateGradientTheme(baseHex: string): void {
 }
 
 export function randomizeSelected(): void {
+  const current = currentSettings();
   const next = buildRandomizedSettings(
-    currentSettings(),
+    current,
     store.get(randomTargetsAtom),
     store.get(palettesAtom),
   );
   store.set(settingsAtom, next);
   scheduleHistoryCommit();
-  store.get(controllerAtom)?.rebuildMarbles(true);
+  const controller = store.get(controllerAtom);
+  controller?.rebuildMarbles(true);
+  if (current.replacePaperOnRandomize) controller?.clearTrail();
   showToast("選択されたパラメータをランダム設定しました");
 }
 

@@ -31,11 +31,13 @@ export function buildRandomizedSettings(
 
   if (targets.color) {
     next.paletteIndex = Math.floor(random() * palettes.length);
-    next.backgroundColorHex = resolveBackgroundOnPaletteChange(
-      getPalette(palettes, current.paletteIndex),
-      palettes[next.paletteIndex],
-      next.backgroundColorHex,
-    );
+    if (!current.keepBackgroundOnRandomize) {
+      next.backgroundColorHex = resolveBackgroundOnPaletteChange(
+        getPalette(palettes, current.paletteIndex),
+        palettes[next.paletteIndex],
+        next.backgroundColorHex,
+      );
+    }
   }
 
   if (targets.physics) {

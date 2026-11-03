@@ -9,14 +9,23 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef } from "react";
-import { randomizeSelected, redo, undo } from "../state/actions";
+import {
+  randomizeSelected,
+  redo,
+  undo,
+  updateSettings,
+} from "../state/actions";
 import {
   historyPointerAtom,
   historyStackAtom,
   isPanelOpenAtom,
   randomTargetsAtom,
+  settingsAtom,
 } from "../state/store";
-import type { RandomTargets } from "../types/simulation";
+import type {
+  RandomTargets,
+  SimulationSettings,
+} from "../types/simulation";
 import { ColorPaletteSection } from "./sections/ColorPaletteSection";
 import { ExportSection } from "./sections/ExportSection";
 import { InkSection } from "./sections/InkSection";
@@ -33,9 +42,18 @@ const RANDOM_TARGET_LABELS: { key: keyof RandomTargets; label: string }[] =
     { key: "noise", label: "実世界ノイズ" },
   ];
 
+const RANDOM_OPTION_LABELS: {
+  key: "keepBackgroundOnRandomize" | "replacePaperOnRandomize";
+  label: string;
+}[] = [
+  { key: "keepBackgroundOnRandomize", label: "紙の背景色を維持" },
+  { key: "replacePaperOnRandomize", label: "紙を交換" },
+];
+
 export const ControlPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useAtom(isPanelOpenAtom);
   const [randomTargets, setRandomTargets] = useAtom(randomTargetsAtom);
+  const settings = useAtomValue(settingsAtom);
   const historyStack = useAtomValue(historyStackAtom);
   const historyPointer = useAtomValue(historyPointerAtom);
 
@@ -160,6 +178,27 @@ export const ControlPanel: React.FC = () => {
                             ...randomTargets,
                             [key]: event.target.checked,
                           })
+                        }
+                        className="w-3 h-3 accent-emerald-600 cursor-pointer"
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 gap-1 text-[10px] text-gray-700 font-medium">
+                  {RANDOM_OPTION_LABELS.map(({ key, label }) => (
+                    <label
+                      key={key}
+                      className="flex items-center gap-1 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={settings[key]}
+                        onChange={(event) =>
+                          updateSettings({
+                            [key]: event.target.checked,
+                          } as Partial<SimulationSettings>)
                         }
                         className="w-3 h-3 accent-emerald-600 cursor-pointer"
                       />

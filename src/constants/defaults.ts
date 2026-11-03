@@ -28,6 +28,8 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   grainTextureEnabled: true,
   autoModulateEnabled: false,
   modulatePeriodMilliseconds: 4000,
+  keepBackgroundOnRandomize: false,
+  replacePaperOnRandomize: false,
   debugModeEnabled: false,
 };
 

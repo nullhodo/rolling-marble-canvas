@@ -65,6 +65,23 @@ describe("ランダム化", () => {
     }
   });
 
+  it("背景色の維持を有効にすると、パレット内の色でも保たれる", () => {
+    const keep = {
+      ...DEFAULT_SETTINGS,
+      keepBackgroundOnRandomize: true,
+    };
+    const random = createSeededRandom(5);
+    for (let index = 0; index < 50; index++) {
+      const next = buildRandomizedSettings(
+        keep,
+        DEFAULT_RANDOM_TARGETS,
+        PRESET_PALETTES,
+        random,
+      );
+      expect(next.backgroundColorHex).toBe(keep.backgroundColorHex);
+    }
+  });
+
   it("任意に選んだ背景色は、ランダム化しても保たれる", () => {
     const custom = { ...DEFAULT_SETTINGS, backgroundColorHex: "#123456" };
     const random = createSeededRandom(9);
