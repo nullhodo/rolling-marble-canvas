@@ -9,6 +9,7 @@ import { clamp } from "../utils/math";
 import { disposeGraphics } from "../utils/p5Graphics";
 import { getInkColors } from "../utils/palette";
 import { exportHighResImage } from "./exporter";
+import { detectEdgeCluster } from "./physics/edgeEscape";
 import type { Marble } from "./physics/marble";
 import { MarbleSimulation, type PullPoint } from "./physics/simulation";
 import { calculateTrayBounds } from "./physics/tray";
@@ -54,6 +55,8 @@ const MIN_CANVAS_SIZE = 300;
 const REBUILD_DEBOUNCE_MS = 200;
 const MANUAL_TILT_LIMIT = 1.5;
 const WALL_SPLATTER_COOLDOWN_STEPS = 24;
+const EDGE_ESCAPE_DURATION_STEPS = 150;
+const EDGE_ESCAPE_COOLDOWN_STEPS = 360;
 
 export function createMarbleSketch(bridge: SketchBridge): {
   sketch: (p: p5) => void;
@@ -74,6 +77,9 @@ export function createMarbleSketch(bridge: SketchBridge): {
   let autoTiltTime = 0;
   let stepCount = 0;
   let stepBudget = 0;
+  let edgeEscapeElapsed = Number.POSITIVE_INFINITY;
+  let edgeEscapeCooldown = 0;
+  let edgeEscapeDirection = { x: 0, y: 0 };
   let lastGravityX = 0;
   let lastGravityY = 0;
   const lastWallSplatter = new WeakMap<Marble, number>();
@@ -428,6 +434,34 @@ export function createMarbleSketch(bridge: SketchBridge): {
             settings.tiltForceMultiplier * settings.autoTiltIntensity;
           gravityX += swing(autoTiltTime, 0) * strength;
           gravityY += swing(autoTiltTime, 1) * strength;
+        }
+        if (settings.autoTiltEnabled && simulation && !pull) {
+          if (edgeEscapeElapsed < EDGE_ESCAPE_DURATION_STEPS) {
+            // 滑らかに立ち上げて戻す。急な切り替えで玉を弾かないため
+            const envelope = Math.sin(
+              (edgeEscapeElapsed / EDGE_ESCAPE_DURATION_STEPS) * Math.PI,
+            );
+            const push =
+              settings.tiltForceMultiplier *
+              settings.edgeEscapeStrength *
+              envelope;
+            gravityX += edgeEscapeDirection.x * push;
+            gravityY += edgeEscapeDirection.y * push;
+            edgeEscapeElapsed++;
+          } else if (edgeEscapeCooldown > 0) {
+            edgeEscapeCooldown--;
+          } else {
+            const direction = detectEdgeCluster(
+              simulation.marbles,
+              bounds,
+              settings.edgeEscapeRatio,
+            );
+            if (direction) {
+              edgeEscapeDirection = direction;
+              edgeEscapeElapsed = 0;
+              edgeEscapeCooldown = EDGE_ESCAPE_COOLDOWN_STEPS;
+            }
+          }
         }
         if (isDragging && isTiltDrag(settings)) {
           gravityX += manualTilt.x * settings.tiltForceMultiplier * 0.8;

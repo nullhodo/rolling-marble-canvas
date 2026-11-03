@@ -33,6 +33,8 @@ export type SimulationSettings = {
   wallBounceElasticity: number;
   autoTiltEnabled: boolean;
   autoTiltIntensity: number;
+  edgeEscapeRatio: number;
+  edgeEscapeStrength: number;
   simulationSpeed: number;
   marbleCount: number;
   marbleRadiusBase: number;

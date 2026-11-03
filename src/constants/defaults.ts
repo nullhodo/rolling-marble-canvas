@@ -17,6 +17,8 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   wallBounceElasticity: 0.75,
   autoTiltEnabled: true,
   autoTiltIntensity: 1,
+  edgeEscapeRatio: 0.4,
+  edgeEscapeStrength: 2,
   simulationSpeed: 1,
   marbleCount: 12,
   marbleRadiusBase: 14,

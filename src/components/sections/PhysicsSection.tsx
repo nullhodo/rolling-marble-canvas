@@ -75,5 +75,25 @@ export const PhysicsSection: React.FC = () => (
       hint="自動揺動で、トレイが傾く強さ (1.00 が標準)"
       accent="accent-amber-600"
     />
+    <SettingSlider
+      label="壁際に溜まったら中央へ傾ける"
+      settingKey="edgeEscapeRatio"
+      min={0}
+      max={1}
+      step={0.05}
+      format={(value) =>
+        value === 0 ? "オフ" : `${Math.round(value * 100)}%以上`
+      }
+      hint="壁際で止まっている玉がこの割合以上になると、溜まっている側と反対へ数秒かけて傾けます"
+      accent="accent-amber-600"
+    />
+    <SettingSlider
+      label="中央へ傾ける強さ"
+      settingKey="edgeEscapeStrength"
+      min={0.5}
+      max={4}
+      step={0.1}
+      accent="accent-amber-600"
+    />
   </Section>
 );
