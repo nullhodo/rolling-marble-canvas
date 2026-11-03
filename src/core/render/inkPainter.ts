@@ -3,6 +3,12 @@ import type { SimulationSettings } from "../../types/simulation";
 import { hexToRgb } from "../../utils/color";
 import type { Marble, NoiseFunction, Random } from "../physics/marble";
 
+const MULTIPLY = "multiply" as unknown as p5.BLEND_MODE;
+const BLEND = "source-over" as unknown as p5.BLEND_MODE;
+
+/** 乗算で重ねても黒く潰れないよう、色を白へ寄せる */
+const lighten = (channel: number) => channel + (255 - channel) * 0.3;
+
 /** 転がった軌跡を、粘性まだらゆらぎ・インクだまり付きで用紙バッファに描く */
 export function paintTrail(
   g: p5.Graphics,
@@ -47,12 +53,20 @@ export function paintTrail(
     (20 + marble.remainingInkLevel * 210) * (0.65 + textureNoise * 0.35),
   );
 
-  // 1. メイン軌跡線
-  g.stroke(rgb.red, rgb.green, rgb.blue, strokeAlpha);
+  // 1. メイン軌跡線。乗算で重ねて、交差部が水彩の重ね塗りのように混ざる
+  g.blendMode(MULTIPLY);
+  const pooling = 0.3 + 0.7 * Math.min(1, speed / 2);
+  g.stroke(
+    lighten(rgb.red),
+    lighten(rgb.green),
+    lighten(rgb.blue),
+    strokeAlpha * pooling,
+  );
   g.strokeWeight(strokeThickness);
   g.strokeCap("round");
   g.strokeJoin("round");
   g.line(marble.prevX, marble.prevY, marble.x, marble.y);
+  g.blendMode(BLEND);
 
   // 2. 粘性インクの芯とエッジ濃淡
   if (
