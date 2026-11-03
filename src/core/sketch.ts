@@ -166,9 +166,9 @@ export function createMarbleSketch(bridge: SketchBridge): {
       !dragWithShift;
 
     const applyLights = () => {
-      p.ambientLight(105, 105, 115);
-      p.directionalLight(170, 165, 155, 0.4, -0.6, -0.8);
-      p.pointLight(120, 118, 112, 0, 200, 400);
+      p.ambientLight(135, 135, 145);
+      p.directionalLight(215, 208, 196, 0.4, -0.6, -0.8);
+      p.pointLight(150, 146, 140, 0, 200, 400);
     };
 
     const applyCamera = (settings: SimulationSettings) => {
@@ -386,7 +386,6 @@ export function createMarbleSketch(bridge: SketchBridge): {
         grain,
         grainEnabled: settings.grainTextureEnabled,
         backgroundHex: settings.backgroundColorHex,
-        restoreLights: applyLights,
       };
 
       p.push();
@@ -395,10 +394,11 @@ export function createMarbleSketch(bridge: SketchBridge): {
         p.rotateX(tiltPitch);
         p.rotateY(tiltRoll);
         drawTray3D(p, bounds, layers);
+        // 手を先に描く。ビー玉の鏡面材質が手に残って白飛びするため
+        if (settings.isHandsVisible) drawHands3D(p, bounds);
         for (const marble of simulation.marbles) {
           drawMarble3D(p, marble, bounds.width, bounds.height);
         }
-        if (settings.isHandsVisible) drawHands3D(p, bounds);
       } else {
         drawTray2D(p, bounds, layers);
         for (const marble of simulation.marbles) {

@@ -7,7 +7,6 @@ type TrayLayers = {
   grain: p5.Graphics | null;
   grainEnabled: boolean;
   backgroundHex: string;
-  restoreLights: () => void;
 };
 
 function isDrawable(buffer: p5.Graphics | null): buffer is p5.Graphics {
@@ -51,7 +50,6 @@ export function drawTray3D(
 
   p.noStroke();
   drawSoftShadow(p, outerWidth, bounds.height + border * 2, depth);
-  layers.restoreLights();
 
   p.push();
   p.translate(0, 0, -depth * 0.5);
@@ -102,7 +100,6 @@ export function drawTray3D(
     p.plane(bounds.width, bounds.height);
   }
   p.pop();
-  layers.restoreLights();
 }
 
 /** 2D 俯瞰: ドロップシャドウ・木枠・用紙・内壁の落とし込みシャドウ */
