@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   autoTiltIntensity: 1,
   marbleCount: 12,
   marbleRadiusBase: 14,
-  inkDecayRate: 0.011,
+  inkDecayRate: 0.0035,
   thicknessFluctuationStrength: 0.68,
   splashSprayStrength: 0.65,
   splatterStrength: 0.7,
