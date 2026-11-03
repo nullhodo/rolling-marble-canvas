@@ -4,10 +4,8 @@ import type {
   SimulationSettings,
   TrayBounds,
 } from "../types/simulation";
-import { hexToRgb } from "../utils/color";
 import { getFormattedDate } from "../utils/date";
 import { downloadBlob } from "../utils/download";
-import { disposeGraphics } from "../utils/p5Graphics";
 import { SKETCH_NAME, buildConfigFile } from "./config";
 
 const HIGH_RES_LONG_SIDE = 2560;
@@ -34,38 +32,61 @@ type HighResSource = {
   trail: p5.Graphics;
 };
 
+/** 紙のざらつき。1セルずつ描かず、小さなノイズ画像を1回拡大して重ねる */
+function paintGrain(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  step: number,
+): void {
+  const noise = document.createElement("canvas");
+  noise.width = Math.ceil(width / step);
+  noise.height = Math.ceil(height / step);
+  const noiseContext = noise.getContext("2d");
+  if (!noiseContext) return;
+
+  const image = noiseContext.createImageData(noise.width, noise.height);
+  for (let index = 0; index < image.data.length; index += 4) {
+    image.data[index] = 30;
+    image.data[index + 1] = 25;
+    image.data[index + 2] = 20;
+    image.data[index + 3] = Math.random() * 18;
+  }
+  noiseContext.putImageData(image, 0, 0);
+
+  context.save();
+  context.globalCompositeOperation = "multiply";
+  context.imageSmoothingEnabled = false;
+  context.drawImage(noise, 0, 0, noise.width * step, noise.height * step);
+  context.restore();
+}
+
 /** 用紙 (背景色 + インク軌跡 + グレイン) だけを高解像度PNGで保存し、設定JSONも保存する。保存名の基準部分を返す */
-export function exportHighResImage(p: p5, source: HighResSource): string {
+export function exportHighResImage(source: HighResSource): string {
   const { settings, bounds, trail } = source;
 
   const scale = Math.max(2.5, HIGH_RES_LONG_SIDE / bounds.width);
   const width = Math.round(bounds.width * scale);
   const height = Math.round(bounds.height * scale);
 
-  const g = p.createGraphics(width, height);
-  g.pixelDensity(1);
+  // p5.Graphics は画面の pixelDensity で確保してから縮めるため、素の canvas で作る
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("2D コンテキストを取得できません");
 
-  const background = hexToRgb(settings.backgroundColorHex);
-  g.background(background.red, background.green, background.blue);
-  g.image(trail, 0, 0, width, height);
+  context.fillStyle = settings.backgroundColorHex;
+  context.fillRect(0, 0, width, height);
+  context.drawImage(trail.elt as HTMLCanvasElement, 0, 0, width, height);
 
   if (settings.grainTextureEnabled) {
-    g.blendMode(p.MULTIPLY);
-    const step = Math.round(4 * scale);
-    g.noStroke();
-    for (let x = 0; x < width; x += step) {
-      for (let y = 0; y < height; y += step) {
-        g.fill(30, 25, 20, Math.random() * 18);
-        g.rect(x, y, step, step);
-      }
-    }
-    g.blendMode(p.BLEND);
+    paintGrain(context, width, height, Math.round(4 * scale));
   }
 
   const baseFilename = `${SKETCH_NAME}_${getFormattedDate()}_${width}x${height}`;
-  (g.elt as HTMLCanvasElement).toBlob((blob) => {
+  canvas.toBlob((blob) => {
     if (blob) downloadBlob(blob, `${baseFilename}.png`);
-    disposeGraphics(g);
   }, "image/png");
   exportJsonSettings(
     `${baseFilename}.json`,

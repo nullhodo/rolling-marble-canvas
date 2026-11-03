@@ -55,7 +55,6 @@ export function createMarbleSketch(bridge: SketchBridge): {
   sketch: (p: p5) => void;
   controller: SketchController;
 } {
-  let p5Instance: p5 | null = null;
   let canvasElement: HTMLCanvasElement | null = null;
   let simulation: MarbleSimulation | null = null;
   let trail: p5.Graphics | null = null;
@@ -141,8 +140,8 @@ export function createMarbleSketch(bridge: SketchBridge): {
     refillInk: () => simulation?.refillInk(),
     rebuildMarbles,
     exportHighRes: () => {
-      if (!p5Instance || !simulation || !trail) return null;
-      return exportHighResImage(p5Instance, {
+      if (!simulation || !trail) return null;
+      return exportHighResImage({
         settings: bridge.getSettings(),
         bounds,
         palette: bridge.getPalette(),
@@ -154,7 +153,6 @@ export function createMarbleSketch(bridge: SketchBridge): {
   };
 
   const sketch = (p: p5) => {
-    p5Instance = p;
     simulation = new MarbleSimulation((x, y) => p.noise(x, y));
 
     const canvasSize = () => ({
