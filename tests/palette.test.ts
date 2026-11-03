@@ -6,7 +6,7 @@ import {
   buildGradientPalette,
   getInkColors,
   getPalette,
-  resolveBackground,
+  resolveBackgroundOnPaletteChange,
   upsertPalette,
 } from "../src/utils/palette";
 
@@ -28,9 +28,9 @@ describe("プリセットパレット", () => {
       PRESET_PALETTES,
       DEFAULT_SETTINGS.paletteIndex,
     );
-    expect(
-      resolveBackground(palette, DEFAULT_SETTINGS.backgroundColorHex),
-    ).toBe(DEFAULT_SETTINGS.backgroundColorHex);
+    expect(palette.colors.map((color) => color.hex)).toContain(
+      DEFAULT_SETTINGS.backgroundColorHex,
+    );
   });
 });
 
@@ -51,12 +51,29 @@ describe("getInkColors", () => {
   });
 });
 
-describe("resolveBackground", () => {
-  it("パレットにない背景色は末尾の色になる", () => {
-    const palette = PRESET_PALETTES[0];
-    expect(resolveBackground(palette, "#123456")).toBe(
-      palette.colors[palette.colors.length - 1].hex,
-    );
+describe("resolveBackgroundOnPaletteChange", () => {
+  const [first, second] = [PRESET_PALETTES[0], PRESET_PALETTES[1]];
+
+  it("パレットから選んだ色は、新しいパレットに無ければ末尾の色へ追従する", () => {
+    expect(
+      resolveBackgroundOnPaletteChange(first, second, first.colors[0].hex),
+    ).toBe(second.colors[second.colors.length - 1].hex);
+  });
+
+  it("新しいパレットにも含まれる色はそのまま保つ", () => {
+    const shared = {
+      ...second,
+      colors: [...second.colors, first.colors[0]],
+    };
+    expect(
+      resolveBackgroundOnPaletteChange(first, shared, first.colors[0].hex),
+    ).toBe(first.colors[0].hex);
+  });
+
+  it("任意に選んだ色は、パレットを変えても保つ", () => {
+    expect(
+      resolveBackgroundOnPaletteChange(first, second, "#123456"),
+    ).toBe("#123456");
   });
 });
 

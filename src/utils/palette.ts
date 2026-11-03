@@ -21,17 +21,24 @@ export function getInkColors(
   return source.map((color) => color.hex);
 }
 
-/** 背景色がパレット内になければ、パレット末尾の色に差し替える */
-export function resolveBackground(
-  palette: Palette,
+const hasColor = (palette: Palette, hex: string) =>
+  palette.colors.some(
+    (color) => color.hex.toUpperCase() === hex.toUpperCase(),
+  );
+
+/**
+ * パレット切り替え時の背景色を決める。
+ * 前のパレットから選んだ色は、新しいパレットに無ければ末尾の色へ追従する。
+ * 任意に選んだ色 (前のパレットに無い色) は、そのまま保つ。
+ */
+export function resolveBackgroundOnPaletteChange(
+  previous: Palette,
+  next: Palette,
   backgroundHex: string,
 ): string {
-  const exists = palette.colors.some(
-    (color) => color.hex.toUpperCase() === backgroundHex.toUpperCase(),
-  );
-  return exists
-    ? backgroundHex
-    : palette.colors[palette.colors.length - 1].hex;
+  const isCustom = !hasColor(previous, backgroundHex);
+  if (isCustom || hasColor(next, backgroundHex)) return backgroundHex;
+  return next.colors[next.colors.length - 1].hex;
 }
 
 export function buildGradientPalette(baseHex: string): Palette {

@@ -85,9 +85,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
     [
       settings.marbleCount,
       settings.marbleRadiusBase,
-      settings.paletteIndex,
-      settings.backgroundColorHex,
-      palette.colors.map((color) => color.hex).join(""),
+      getInkColors(palette, settings.backgroundColorHex).join(""),
     ].join("|");
 
   const rebuildMarbles = (preserveTrail: boolean) => {

@@ -7,7 +7,7 @@ import { getFormattedDate } from "../utils/date";
 import {
   buildGradientPalette,
   getPalette,
-  resolveBackground,
+  resolveBackgroundOnPaletteChange,
   upsertPalette,
 } from "../utils/palette";
 import {
@@ -82,12 +82,14 @@ export function redo(): void {
 }
 
 export function applyPalette(index: number): void {
-  const palette = getPalette(store.get(palettesAtom), index);
+  const palettes = store.get(palettesAtom);
+  const settings = currentSettings();
   updateSettings({
     paletteIndex: index,
-    backgroundColorHex: resolveBackground(
-      palette,
-      currentSettings().backgroundColorHex,
+    backgroundColorHex: resolveBackgroundOnPaletteChange(
+      getPalette(palettes, settings.paletteIndex),
+      getPalette(palettes, index),
+      settings.backgroundColorHex,
     ),
   });
 }

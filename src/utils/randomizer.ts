@@ -4,7 +4,7 @@ import type {
   SimulationSettings,
 } from "../types/simulation";
 import { clamp } from "./math";
-import { resolveBackground } from "./palette";
+import { getPalette, resolveBackgroundOnPaletteChange } from "./palette";
 
 type Random = () => number;
 
@@ -31,7 +31,8 @@ export function buildRandomizedSettings(
 
   if (targets.color) {
     next.paletteIndex = Math.floor(random() * palettes.length);
-    next.backgroundColorHex = resolveBackground(
+    next.backgroundColorHex = resolveBackgroundOnPaletteChange(
+      getPalette(palettes, current.paletteIndex),
       palettes[next.paletteIndex],
       next.backgroundColorHex,
     );

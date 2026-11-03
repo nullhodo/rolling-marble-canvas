@@ -10,6 +10,7 @@ import {
 } from "../../state/actions";
 import { palettesAtom, settingsAtom } from "../../state/store";
 import { getPalette } from "../../utils/palette";
+import { PaletteSelect } from "../ui/PaletteSelect";
 import { Section } from "../ui/Section";
 import { SECONDARY_BUTTON } from "../ui/buttonStyles";
 
@@ -22,19 +23,11 @@ export const ColorPaletteSection: React.FC = () => {
   return (
     <Section icon={PaletteIcon} title="配色 & パレット">
       <div className="flex gap-2">
-        <select
+        <PaletteSelect
+          palettes={palettes}
           value={settings.paletteIndex}
-          onChange={(event) =>
-            applyPalette(Number.parseInt(event.target.value, 10))
-          }
-          className="flex-1 min-w-0 bg-white/70 hover:bg-white/95 border border-gray-300/80 text-gray-900 rounded p-1.5 text-xs focus:ring-1 focus:ring-gray-900 focus:outline-none cursor-pointer shadow-2xs transition"
-        >
-          {palettes.map((item, index) => (
-            <option key={item.title} value={index}>
-              {item.title} ({item.colors.length}色)
-            </option>
-          ))}
-        </select>
+          onChange={applyPalette}
+        />
         <button
           type="button"
           onClick={pickRandomPalette}
@@ -49,7 +42,7 @@ export const ColorPaletteSection: React.FC = () => {
 
       <div className="space-y-1">
         <span className="text-[11px] text-gray-600 font-medium block">
-          用紙背景色 (パレットの色をクリック)
+          用紙背景色 (パレットの色、または任意の色)
         </span>
         <div className="h-7 w-full rounded overflow-hidden flex border border-gray-300/80 shadow-inner">
           {palette.colors.map((color) => (
@@ -70,8 +63,22 @@ export const ColorPaletteSection: React.FC = () => {
             />
           ))}
         </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={settings.backgroundColorHex.toLowerCase()}
+            onChange={(event) =>
+              updateSettings({ backgroundColorHex: event.target.value })
+            }
+            title="任意の背景色を選ぶ"
+            className="w-8 h-8 rounded border border-gray-300/80 cursor-pointer bg-transparent"
+          />
+          <span className="font-mono text-[11px] text-gray-700">
+            {settings.backgroundColorHex.toUpperCase()}
+          </span>
+        </div>
         <p className="text-[10px] text-gray-500">
-          背景と同じ色はビー玉のインク色から除外されます
+          背景と同じ色はビー玉のインク色から除外されます。任意に選んだ色は、パレットを変えても保たれます
         </p>
       </div>
 

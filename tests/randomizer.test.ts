@@ -48,7 +48,7 @@ describe("ランダム化", () => {
     }
   });
 
-  it("背景色は選ばれたパレットに含まれる", () => {
+  it("パレットから選んだ背景色は、選ばれたパレットに含まれる", () => {
     const random = createSeededRandom(7);
     for (let index = 0; index < 200; index++) {
       const next = buildRandomizedSettings(
@@ -61,6 +61,20 @@ describe("ランダム化", () => {
       expect(palette.colors.map((c) => c.hex)).toContain(
         next.backgroundColorHex,
       );
+    }
+  });
+
+  it("任意に選んだ背景色は、ランダム化しても保たれる", () => {
+    const custom = { ...DEFAULT_SETTINGS, backgroundColorHex: "#123456" };
+    const random = createSeededRandom(9);
+    for (let index = 0; index < 50; index++) {
+      const next = buildRandomizedSettings(
+        custom,
+        DEFAULT_RANDOM_TARGETS,
+        PRESET_PALETTES,
+        random,
+      );
+      expect(next.backgroundColorHex).toBe("#123456");
     }
   });
 
