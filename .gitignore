@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+.DS_Store
+
+# 保存した画像・動画・JSON はここに置く (中身はGit管理しない)
+output/*
+!output/.gitkeep
