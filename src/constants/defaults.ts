@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   splashSprayStrength: 0.65,
   splatterStrength: 0.7,
   wobbleNoiseStrength: 0.45,
-  surfaceNoiseStrength: 0.35,
+  surfaceNoiseStrength: 0.7,
   grainTextureEnabled: true,
   autoModulateEnabled: false,
   modulatePeriodMilliseconds: 4000,
