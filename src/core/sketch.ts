@@ -114,7 +114,6 @@ export function createMarbleSketch(bridge: SketchBridge): {
         settings: bridge.getSettings(),
         bounds,
         palette: bridge.getPalette(),
-        marbles: simulation.marbles,
         trail,
       });
     },

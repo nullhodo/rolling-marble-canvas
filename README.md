@@ -145,7 +145,7 @@ rolling-marble-canvas/
 
 | 種類 | ファイル名 | 内容 |
 | --- | --- | --- |
-| 画像 | `RollingMarbleCanvas_<日時>_<幅>x<高さ>.png` | 長辺 2560px 以上の高解像度画像 |
+| 画像 | `RollingMarbleCanvas_<日時>_<幅>x<高さ>.png` | 用紙のみ (木枠・ビー玉・手なし) の、長辺 2560px 以上の高解像度画像 |
 | 動画 | `RollingMarbleCanvas_<日時>.mp4` | 60fps H.264 (非対応環境は `.webm`) |
 | n Loop 動画 | `RollingMarbleCanvas_<日時>_nloop_<N>x<周期>ms.mp4` | 変調周期 × N ループちょうどの長さ |
 | 設定 | 上記と同名の `.json` | 画像・動画の保存時に自動で付与。読み込めば再現できる |
