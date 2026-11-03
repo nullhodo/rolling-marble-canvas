@@ -55,5 +55,14 @@ export const PhysicsSection: React.FC = () => (
       settingKey="autoTiltEnabled"
       hint="手を離してもノイズでトレイが自然に傾きます"
     />
+    <SettingSlider
+      label="自動揺動の激しさ"
+      settingKey="autoTiltIntensity"
+      min={0}
+      max={3}
+      step={0.05}
+      hint="自動揺動で、トレイが傾く強さ (1.00 が標準)"
+      accent="accent-amber-600"
+    />
   </Section>
 );

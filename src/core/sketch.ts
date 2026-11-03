@@ -318,6 +318,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
           (p.noise(autoTiltTime + 100) - 0.5) *
           2 *
           settings.tiltForceMultiplier *
+          settings.autoTiltIntensity *
           0.6;
         gravityX += Math.cos(angle) * magnitude;
         gravityY += Math.sin(angle) * magnitude;

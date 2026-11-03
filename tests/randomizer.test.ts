@@ -23,6 +23,7 @@ const SLIDER_RANGES = {
   splatterStrength: [0, 1],
   wobbleNoiseStrength: [0, 1],
   surfaceNoiseStrength: [0, 1],
+  autoTiltIntensity: [0, 3],
 } as const;
 
 function expectWithinSliders(settings: typeof DEFAULT_SETTINGS) {
