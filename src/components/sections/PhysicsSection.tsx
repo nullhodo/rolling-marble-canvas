@@ -7,6 +7,17 @@ import { SettingToggle } from "../ui/SettingToggle";
 export const PhysicsSection: React.FC = () => (
   <Section icon={WindIcon} title="物理挙動 & 実世界ノイズ">
     <SettingSlider
+      label="シミュレーション速度"
+      settingKey="simulationSpeed"
+      min={-3}
+      max={4}
+      step={0.05}
+      logarithmic
+      format={(value) => `${Number(value.toPrecision(3))}倍`}
+      hint="物理とインク描画を進める速さ (対数、0.125〜16倍)。2倍以上は1フレームに複数回計算します"
+      accent="accent-amber-600"
+    />
+    <SettingSlider
       label="トレイ傾き感度"
       settingKey="tiltForceMultiplier"
       min={0.1}

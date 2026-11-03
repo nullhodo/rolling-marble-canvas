@@ -69,6 +69,9 @@ export function createMarbleSketch(bridge: SketchBridge): {
   let tiltRoll = 0;
   let autoTiltTime = 0;
   let stepCount = 0;
+  let stepBudget = 0;
+  let lastGravityX = 0;
+  let lastGravityY = 0;
   const lastWallSplatter = new WeakMap<Marble, number>();
   // 周期性が出ないよう、軸ごとにランダムな節点を滑らかに補間した値ノイズで揺らす
   const tiltKnots: Map<number, number>[] = [new Map(), new Map()];
@@ -381,10 +384,15 @@ export function createMarbleSketch(bridge: SketchBridge): {
       }
 
       // 1. トレイ傾斜 (自動揺動 + 手動ドラッグ) と、2. 物理更新・インク描画
-      const steps = 1 + warmupSteps + fastForwardSteps;
+      // 倍速。1未満や端数は持ち越して、数フレームに1回の更新として表現する
+      stepBudget += settings.simulationSpeed;
+      const speedSteps = Math.floor(stepBudget);
+      stepBudget -= speedSteps;
+      const steps = speedSteps + warmupSteps + fastForwardSteps;
       warmupSteps = 0;
-      let gravityX = 0;
-      let gravityY = 0;
+      // ステップが0回のフレームでも傾きの見た目が途切れないよう、前回の値を引き継ぐ
+      let gravityX = lastGravityX;
+      let gravityY = lastGravityY;
       for (let step = 0; step < steps; step++) {
         gravityX = 0;
         gravityY = 0;
@@ -401,6 +409,8 @@ export function createMarbleSketch(bridge: SketchBridge): {
           gravityY += manualTilt.y * settings.tiltForceMultiplier * 0.8;
         }
         advance(settings, gravityX, gravityY);
+        lastGravityX = gravityX;
+        lastGravityY = gravityY;
       }
 
       const targetRoll = (gravityX / settings.tiltForceMultiplier) * 0.16;

@@ -20,6 +20,8 @@ interface Props {
   format?: (value: number) => string;
   hint?: string;
   accent?: string;
+  /** 対数スケール。min / max / step は設定値ではなく log2 の値で指定する */
+  logarithmic?: boolean;
 }
 
 function decimalsOf(step: number): number {
@@ -36,9 +38,11 @@ export const SettingSlider: React.FC<Props> = ({
   format,
   hint,
   accent = "accent-emerald-600",
+  logarithmic = false,
 }) => {
   const value = useAtomValue(settingsAtom)[settingKey];
   const display = format ? format(value) : value.toFixed(decimalsOf(step));
+  const sliderValue = logarithmic ? Math.log2(value) : value;
 
   return (
     <div className="space-y-1" title={hint}>
@@ -51,12 +55,11 @@ export const SettingSlider: React.FC<Props> = ({
         min={min}
         max={max}
         step={step}
-        value={value}
-        onChange={(event) =>
-          updateSettings({
-            [settingKey]: Number.parseFloat(event.target.value),
-          })
-        }
+        value={sliderValue}
+        onChange={(event) => {
+          const raw = Number.parseFloat(event.target.value);
+          updateSettings({ [settingKey]: logarithmic ? 2 ** raw : raw });
+        }}
         className={`w-full ${accent} bg-gray-200 rounded h-1.5 cursor-pointer`}
       />
     </div>

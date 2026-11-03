@@ -57,11 +57,13 @@ export const ViewSection: React.FC = () => {
         />
       </div>
 
-      <SettingToggle
-        label="台を持つ手を表示"
-        settingKey="isHandsVisible"
-        hint="トレイの左右を握る両手を表示します"
-      />
+      {settings.isThreeDimensionalView && (
+        <SettingToggle
+          label="台を持つ手を表示"
+          settingKey="isHandsVisible"
+          hint="トレイの左右を握る両手を表示します"
+        />
+      )}
 
       {settings.isThreeDimensionalView && (
         <div className="space-y-2.5 pt-2 border-t border-gray-200/60">
