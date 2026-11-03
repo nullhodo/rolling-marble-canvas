@@ -6,6 +6,7 @@ const DRAG_LABELS = {
   idle: "待機中",
   tilting: "トレイ傾斜操作中",
   orbiting: "3Dカメラ旋回中",
+  pulling: "引き寄せ中",
 } as const;
 
 /** 画面上部中央の操作ヒント。3D 表示のときだけ出す */

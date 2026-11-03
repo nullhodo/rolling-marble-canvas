@@ -44,18 +44,20 @@ export const ViewSection: React.FC = () => {
         }
       />
 
-      <div className="space-y-1">
-        <span className="text-[11px] text-gray-600 font-medium block">
-          左ボタンドラッグの動作
-        </span>
-        <SegmentedControl
-          options={DRAG_OPTIONS}
-          value={settings.dragInteractionMode}
-          onChange={(value) =>
-            updateSettings({ dragInteractionMode: value })
-          }
-        />
-      </div>
+      {settings.isThreeDimensionalView && (
+        <div className="space-y-1">
+          <span className="text-[11px] text-gray-600 font-medium block">
+            左ボタンドラッグの動作
+          </span>
+          <SegmentedControl
+            options={DRAG_OPTIONS}
+            value={settings.dragInteractionMode}
+            onChange={(value) =>
+              updateSettings({ dragInteractionMode: value })
+            }
+          />
+        </div>
+      )}
 
       {settings.isThreeDimensionalView && (
         <SettingToggle

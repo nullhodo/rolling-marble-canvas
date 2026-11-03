@@ -82,3 +82,28 @@ export function drawMarble2D(
 
   p.pop();
 }
+
+/** 2D で引き寄せているポインタ位置の目印。脈打つ二重の輪 */
+export function drawPullMarker(
+  p: p5,
+  point: { x: number; y: number },
+  bounds: { width: number; height: number },
+  timeMilliseconds: number,
+): void {
+  const pulse = (Math.sin(timeMilliseconds * 0.006) + 1) * 0.5;
+
+  p.push();
+  p.translate(
+    point.x - bounds.width * 0.5,
+    point.y - bounds.height * 0.5,
+    3,
+  );
+  p.noFill();
+  p.stroke(255, 255, 255, 150);
+  p.strokeWeight(2);
+  p.circle(0, 0, 22 + pulse * 8);
+  p.stroke(60, 50, 40, 90);
+  p.strokeWeight(1);
+  p.circle(0, 0, 40 + pulse * 16);
+  p.pop();
+}

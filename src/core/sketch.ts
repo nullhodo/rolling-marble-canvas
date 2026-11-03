@@ -10,7 +10,7 @@ import { disposeGraphics } from "../utils/p5Graphics";
 import { getInkColors } from "../utils/palette";
 import { exportHighResImage } from "./exporter";
 import type { Marble } from "./physics/marble";
-import { MarbleSimulation } from "./physics/simulation";
+import { MarbleSimulation, type PullPoint } from "./physics/simulation";
 import { calculateTrayBounds } from "./physics/tray";
 import { drawDebugOverlay } from "./render/debugRenderer";
 import { drawHands3D } from "./render/handsRenderer";
@@ -19,14 +19,18 @@ import {
   paintSplatter,
   paintTrail,
 } from "./render/inkPainter";
-import { drawMarble2D, drawMarble3D } from "./render/marbleRenderer";
+import {
+  drawMarble2D,
+  drawMarble3D,
+  drawPullMarker,
+} from "./render/marbleRenderer";
 import {
   drawTray2D,
   drawTray3D,
   paintPaperGrain,
 } from "./render/trayRenderer";
 
-export type DragState = "idle" | "tilting" | "orbiting";
+export type DragState = "idle" | "tilting" | "orbiting" | "pulling";
 
 /** スケッチが React 側の状態を読み書きするための窓口 */
 export type SketchBridge = {
@@ -193,6 +197,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
     };
 
     const isTiltDrag = (settings: SimulationSettings) =>
+      settings.isThreeDimensionalView &&
       dragButton === 0 &&
       settings.dragInteractionMode === "tilt" &&
       !dragWithShift;
@@ -292,7 +297,11 @@ export function createMarbleSketch(bridge: SketchBridge): {
       previousPointerY = p.mouseY;
 
       if (isTiltDrag(settings)) updateManualTilt();
-      bridge.setDragState(isTiltDrag(settings) ? "tilting" : "orbiting");
+      if (!settings.isThreeDimensionalView) {
+        bridge.setDragState(dragButton === 0 ? "pulling" : "idle");
+      } else {
+        bridge.setDragState(isTiltDrag(settings) ? "tilting" : "orbiting");
+      }
     };
 
     p.mouseDragged = () => {
@@ -315,7 +324,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
             CAMERA_LIMITS.pitchMax,
           ),
         });
-      } else {
+      } else if (isTiltDrag(settings)) {
         updateManualTilt();
       }
     };
@@ -332,10 +341,17 @@ export function createMarbleSketch(bridge: SketchBridge): {
       settings: SimulationSettings,
       gravityX: number,
       gravityY: number,
+      pull?: PullPoint,
     ) => {
       if (!simulation) return;
       stepCount++;
-      const events = simulation.step(settings, gravityX, gravityY, bounds);
+      const events = simulation.step(
+        settings,
+        gravityX,
+        gravityY,
+        bounds,
+        pull,
+      );
       const noise = (x: number, y?: number) => p.noise(x, y);
       if (!trail) return;
       for (const marble of simulation.marbles) {
@@ -391,12 +407,21 @@ export function createMarbleSketch(bridge: SketchBridge): {
       const steps = speedSteps + warmupSteps + fastForwardSteps;
       warmupSteps = 0;
       // ステップが0回のフレームでも傾きの見た目が途切れないよう、前回の値を引き継ぐ
+      // 2D は押している間、ポインタ位置へビー玉を引き寄せる
+      const pull: PullPoint | undefined =
+        isDragging && dragButton === 0 && !settings.isThreeDimensionalView
+          ? {
+              x: p.mouseX - p.width * 0.5 + bounds.width * 0.5,
+              y: p.mouseY - p.height * 0.5 + bounds.height * 0.5,
+              strength: settings.tiltForceMultiplier * 1.6,
+            }
+          : undefined;
       let gravityX = lastGravityX;
       let gravityY = lastGravityY;
       for (let step = 0; step < steps; step++) {
         gravityX = 0;
         gravityY = 0;
-        if (settings.autoTiltEnabled) {
+        if (settings.autoTiltEnabled && !pull) {
           autoTiltTime += 0.018;
           // X と Y を、位相の違う正弦波の合成で動かす。平均が 0 なので傾く向きが偏らない
           const strength =
@@ -408,7 +433,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
           gravityX += manualTilt.x * settings.tiltForceMultiplier * 0.8;
           gravityY += manualTilt.y * settings.tiltForceMultiplier * 0.8;
         }
-        advance(settings, gravityX, gravityY);
+        advance(settings, gravityX, gravityY, pull);
         lastGravityX = gravityX;
         lastGravityY = gravityY;
       }
@@ -444,6 +469,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
         for (const marble of simulation.marbles) {
           drawMarble2D(p, marble, bounds.width, bounds.height);
         }
+        if (pull) drawPullMarker(p, pull, bounds, p.millis());
       }
       p.pop();
 

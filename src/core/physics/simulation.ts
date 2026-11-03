@@ -10,6 +10,17 @@ import {
   type Random,
 } from "./marble";
 
+/** 2D でポインタを押している間、ビー玉を引き寄せる点 (用紙ローカル座標) */
+export type PullPoint = {
+  x: number;
+  y: number;
+  /** 引力の最大加速度 */
+  strength: number;
+};
+
+/** この距離以上では引力が頭打ちになる (px) */
+const PULL_FULL_DISTANCE = 260;
+
 /** ビー玉群の生成と、1フレーム分の物理ステップ。p5 に依存しない */
 export class MarbleSimulation {
   marbles: Marble[] = [];
@@ -53,14 +64,29 @@ export class MarbleSimulation {
     gravityX: number,
     gravityY: number,
     bounds: TrayBounds,
+    pull?: PullPoint,
   ): PhysicsEvent[] {
     const events: PhysicsEvent[] = [];
 
     for (const marble of this.marbles) {
+      let pullX = 0;
+      let pullY = 0;
+      if (pull) {
+        // 近いほど弱く、遠いほど強い。真上では 0 になり、点の周りを回って落ち着く
+        const dx = pull.x - marble.x;
+        const dy = pull.y - marble.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance > 0.001) {
+          const magnitude =
+            pull.strength * Math.min(1, distance / PULL_FULL_DISTANCE);
+          pullX = (dx / distance) * magnitude;
+          pullY = (dy / distance) * magnitude;
+        }
+      }
       events.push(
         ...marble.updatePhysics(
-          gravityX,
-          gravityY,
+          gravityX + pullX,
+          gravityY + pullY,
           bounds,
           settings,
           this.noise,
