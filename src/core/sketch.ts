@@ -71,15 +71,30 @@ export function createMarbleSketch(bridge: SketchBridge): {
   let autoTiltTime = 0;
   let stepCount = 0;
   const lastWallSplatter = new WeakMap<Marble, number>();
-  const tiltPhases = Array.from(
-    { length: 6 },
-    () => Math.random() * Math.PI * 2,
-  );
-  const swing = (time: number, offset: number) =>
-    (Math.sin(time + tiltPhases[offset]) +
-      0.7 * Math.sin(time * 0.63 + tiltPhases[offset + 1]) +
-      0.4 * Math.sin(time * 1.7 + tiltPhases[offset + 2])) /
-    2.1;
+  // 周期性が出ないよう、軸ごとにランダムな節点を滑らかに補間した値ノイズで揺らす
+  const tiltKnots: Map<number, number>[] = [new Map(), new Map()];
+  const tiltKnot = (axis: number, index: number) => {
+    const knots = tiltKnots[axis];
+    let value = knots.get(index);
+    if (value === undefined) {
+      value = Math.random() * 2 - 1;
+      knots.set(index, value);
+    }
+    return value;
+  };
+  const smoothNoise = (axis: number, position: number) => {
+    const index = Math.floor(position);
+    const fraction = position - index;
+    const eased = fraction * fraction * (3 - 2 * fraction);
+    return (
+      tiltKnot(axis, index) * (1 - eased) +
+      tiltKnot(axis, index + 1) * eased
+    );
+  };
+  const swing = (time: number, axis: number) =>
+    (smoothNoise(axis, time * 0.9) +
+      0.5 * smoothNoise(axis, time * 2.3 + 100)) /
+    1.5;
   const fastForwardSteps = import.meta.env.DEV
     ? Number(new URLSearchParams(location.search).get("ff")) || 0
     : 0;
@@ -381,7 +396,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
           const strength =
             settings.tiltForceMultiplier * settings.autoTiltIntensity;
           gravityX += swing(autoTiltTime, 0) * strength;
-          gravityY += swing(autoTiltTime, 3) * strength;
+          gravityY += swing(autoTiltTime, 1) * strength;
         }
         if (isDragging && isTiltDrag(settings)) {
           gravityX += manualTilt.x * settings.tiltForceMultiplier * 0.8;
