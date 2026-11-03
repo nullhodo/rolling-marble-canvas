@@ -7,10 +7,34 @@ type TrayLayers = {
   grain: p5.Graphics | null;
   grainEnabled: boolean;
   backgroundHex: string;
+  restoreLights: () => void;
 };
 
 function isDrawable(buffer: p5.Graphics | null): buffer is p5.Graphics {
   return Boolean(buffer?.elt && buffer.elt.width > 0);
+}
+
+const SHADOW_LAYERS = 12;
+
+/** トレイの下に落ちる柔らかい影。半透明の板を少しずつ大きくして重ね、ぼかしの代わりにする */
+function drawSoftShadow(
+  p: p5,
+  width: number,
+  height: number,
+  depth: number,
+): void {
+  p.push();
+  p.noLights();
+  p.noStroke();
+  for (let layer = 0; layer < SHADOW_LAYERS; layer++) {
+    const spread = 2 + layer * 3.2;
+    p.push();
+    p.translate(8, 12, -depth - 2 - layer * 0.05);
+    p.fill(0, 0, 0, 9);
+    p.plane(width + spread * 2, height + spread * 2);
+    p.pop();
+  }
+  p.pop();
 }
 
 /** 3D: 木枠トレイ (底板 + 4辺のリム) と用紙 (背景 + インク軌跡 + グレイン) */
@@ -26,14 +50,16 @@ export function drawTray3D(
   const outerWidth = bounds.width + border * 2;
 
   p.noStroke();
+  drawSoftShadow(p, outerWidth, bounds.height + border * 2, depth);
+  layers.restoreLights();
 
   p.push();
   p.translate(0, 0, -depth * 0.5);
-  p.fill(48, 35, 25);
+  p.fill(55, 40, 29);
   p.box(outerWidth, bounds.height + border * 2, depth);
   p.pop();
 
-  p.fill(70, 50, 36);
+  p.fill(74, 56, 43);
   const rimZ = depth * 0.35;
   const rimDepth = depth * 0.7;
 
@@ -57,7 +83,9 @@ export function drawTray3D(
   p.box(border, bounds.height, rimDepth);
   p.pop();
 
+  // 用紙は照明で白飛びさせず、背景色をそのまま見せる
   p.push();
+  p.noLights();
   p.translate(0, 0, 0.5);
   p.noStroke();
 
@@ -74,6 +102,7 @@ export function drawTray3D(
     p.plane(bounds.width, bounds.height);
   }
   p.pop();
+  layers.restoreLights();
 }
 
 /** 2D 俯瞰: ドロップシャドウ・木枠・用紙・内壁の落とし込みシャドウ */

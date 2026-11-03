@@ -26,7 +26,10 @@ export const randomTargetsAtom = atom<RandomTargets>(
   DEFAULT_RANDOM_TARGETS,
 );
 
-export const isPanelOpenAtom = atom<boolean>(true);
+export const isPanelOpenAtom = atom<boolean>(
+  !import.meta.env.DEV ||
+    new URLSearchParams(location.search).get("panel") !== "0",
+);
 export const dragStateAtom = atom<DragState>("idle");
 export const toastsAtom = atom<Toast[]>([]);
 

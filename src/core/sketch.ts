@@ -67,6 +67,9 @@ export function createMarbleSketch(bridge: SketchBridge): {
   let tiltPitch = 0;
   let tiltRoll = 0;
   let autoTiltTime = 0;
+  let warmupSteps = import.meta.env.DEV
+    ? Number(new URLSearchParams(location.search).get("warmup")) || 0
+    : 0;
 
   // ポインタ操作
   let isDragging = false;
@@ -162,6 +165,12 @@ export function createMarbleSketch(bridge: SketchBridge): {
       settings.dragInteractionMode === "tilt" &&
       !dragWithShift;
 
+    const applyLights = () => {
+      p.ambientLight(105, 105, 115);
+      p.directionalLight(170, 165, 155, 0.4, -0.6, -0.8);
+      p.pointLight(120, 118, 112, 0, 200, 400);
+    };
+
     const applyCamera = (settings: SimulationSettings) => {
       if (settings.isThreeDimensionalView) {
         p.perspective(Math.PI / 3.4, p.width / p.height, 10, 6000);
@@ -182,9 +191,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
           1,
         );
 
-        p.ambientLight(140, 140, 150);
-        p.directionalLight(245, 240, 230, 0.4, -0.6, -0.8);
-        p.pointLight(255, 255, 255, 0, 200, 400);
+        applyLights();
       } else {
         // 真上から見下ろす。Y 軸正が画面下
         p.ortho(
@@ -289,12 +296,43 @@ export function createMarbleSketch(bridge: SketchBridge): {
       bridge.setDragState("idle");
     };
 
+    const advance = (
+      settings: SimulationSettings,
+      gravityX: number,
+      gravityY: number,
+    ) => {
+      if (!simulation) return;
+      const events = simulation.step(settings, gravityX, gravityY, bounds);
+      const noise = (x: number, y?: number) => p.noise(x, y);
+      if (!trail) return;
+      for (const marble of simulation.marbles) {
+        paintTrail(trail, marble, settings, noise);
+      }
+      for (const event of events) {
+        if (event.kind === "splash") {
+          paintCentrifugalSplash(
+            trail,
+            event.marble,
+            event.speed,
+            event.turn,
+            settings,
+          );
+        } else if (event.kind === "wall") {
+          paintSplatter(trail, event.marble, event.impulse, settings);
+        } else {
+          for (const marble of event.marbles) {
+            paintSplatter(trail, marble, event.impulse, settings, event);
+          }
+        }
+      }
+    };
+
     p.draw = () => {
       if (p.width <= 0 || p.height <= 0 || !simulation) return;
 
       const settings = bridge.getSettings();
       const palette = bridge.getPalette();
-      p.background(12, 14, 20);
+      p.background(62, 63, 70);
 
       // パレット・個数・サイズが変わったら、入力が落ち着いてからビー玉を作り直す
       const key = rebuildKey(settings, palette);
@@ -312,7 +350,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
       let gravityX = 0;
       let gravityY = 0;
       if (settings.autoTiltEnabled) {
-        autoTiltTime += 0.007;
+        autoTiltTime += 0.011;
         const angle = p.noise(autoTiltTime) * Math.PI * 4;
         const magnitude =
           (p.noise(autoTiltTime + 100) - 0.5) *
@@ -335,29 +373,10 @@ export function createMarbleSketch(bridge: SketchBridge): {
       tiltPitch += (targetPitch - tiltPitch) * 0.12;
 
       // 2. 物理更新と、インク軌跡・飛沫の描画
-      const events = simulation.step(settings, gravityX, gravityY, bounds);
-      const noise = (x: number, y?: number) => p.noise(x, y);
-      if (trail) {
-        for (const marble of simulation.marbles) {
-          paintTrail(trail, marble, settings, noise);
-        }
-        for (const event of events) {
-          if (event.kind === "splash") {
-            paintCentrifugalSplash(
-              trail,
-              event.marble,
-              event.speed,
-              event.turn,
-              settings,
-            );
-          } else if (event.kind === "wall") {
-            paintSplatter(trail, event.marble, event.impulse, settings);
-          } else {
-            for (const marble of event.marbles) {
-              paintSplatter(trail, marble, event.impulse, settings, event);
-            }
-          }
-        }
+      const steps = 1 + warmupSteps;
+      warmupSteps = 0;
+      for (let step = 0; step < steps; step++) {
+        advance(settings, gravityX, gravityY);
       }
 
       // 3. カメラ・ライティング・シーン描画
@@ -367,6 +386,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
         grain,
         grainEnabled: settings.grainTextureEnabled,
         backgroundHex: settings.backgroundColorHex,
+        restoreLights: applyLights,
       };
 
       p.push();
