@@ -47,7 +47,8 @@ export function buildRandomizedSettings(
   }
 
   if (targets.ink) {
-    next.marbleCount = Math.floor(4 + random() * 24);
+    // 少ない個数が出やすいよう、乱数を2乗して小さい側へ偏らせる
+    next.marbleCount = Math.floor(3 + random() ** 2 * 25);
     next.marbleRadiusBase = Math.floor(8 + random() * 18);
     next.inkDecayRate = randomInRange(0.001, 0.009, 4, random);
     next.thicknessFluctuationStrength = randomInRange(
