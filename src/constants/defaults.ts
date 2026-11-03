@@ -9,7 +9,7 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   dragInteractionMode: "tilt",
   cameraPitchDegrees: 50,
   cameraYawDegrees: 0,
-  cameraDistancePixels: 1100,
+  cameraDistancePixels: 980,
   paletteIndex: 1,
   backgroundColorHex: "#E1DCCA",
   tiltForceMultiplier: 0.65,

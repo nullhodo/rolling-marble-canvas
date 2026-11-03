@@ -44,13 +44,13 @@ export function drawHands3D(p: p5, bounds: TrayBounds): void {
     blob(
       p,
       SLEEVE,
-      [side * 62, 120, midZ - 6],
-      [24, 38, 22],
+      [side * 76, 140, midZ - 6],
+      [32, 52, 28],
       [0, 0, side * 0.35],
     );
 
     // 手のひら: 外壁に当たる
-    blob(p, SKIN, [side * 24, 40, midZ], [14, 24, 24]);
+    blob(p, SKIN, [side * 30, 48, midZ], [19, 32, 30]);
 
     // 親指: 木枠の上面を押さえる、独立した小さな粒
     blob(
