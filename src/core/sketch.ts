@@ -9,6 +9,7 @@ import { clamp } from "../utils/math";
 import { disposeGraphics } from "../utils/p5Graphics";
 import { getInkColors } from "../utils/palette";
 import { exportHighResImage } from "./exporter";
+import type { Marble } from "./physics/marble";
 import { MarbleSimulation } from "./physics/simulation";
 import { calculateTrayBounds } from "./physics/tray";
 import { drawDebugOverlay } from "./render/debugRenderer";
@@ -48,6 +49,7 @@ export type SketchController = {
 const MIN_CANVAS_SIZE = 300;
 const REBUILD_DEBOUNCE_MS = 200;
 const MANUAL_TILT_LIMIT = 1.5;
+const WALL_SPLATTER_COOLDOWN_STEPS = 24;
 
 export function createMarbleSketch(bridge: SketchBridge): {
   sketch: (p: p5) => void;
@@ -67,6 +69,8 @@ export function createMarbleSketch(bridge: SketchBridge): {
   let tiltPitch = 0;
   let tiltRoll = 0;
   let autoTiltTime = 0;
+  let stepCount = 0;
+  const lastWallSplatter = new WeakMap<Marble, number>();
   const tiltPhases = Array.from(
     { length: 6 },
     () => Math.random() * Math.PI * 2,
@@ -311,6 +315,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
       gravityY: number,
     ) => {
       if (!simulation) return;
+      stepCount++;
       const events = simulation.step(settings, gravityX, gravityY, bounds);
       const noise = (x: number, y?: number) => p.noise(x, y);
       if (!trail) return;
@@ -327,6 +332,10 @@ export function createMarbleSketch(bridge: SketchBridge): {
             settings,
           );
         } else if (event.kind === "wall") {
+          const last =
+            lastWallSplatter.get(event.marble) ?? Number.NEGATIVE_INFINITY;
+          if (stepCount - last < WALL_SPLATTER_COOLDOWN_STEPS) continue;
+          lastWallSplatter.set(event.marble, stepCount);
           paintSplatter(trail, event.marble, event.impulse, settings);
         } else {
           for (const marble of event.marbles) {
