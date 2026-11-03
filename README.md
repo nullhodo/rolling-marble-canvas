@@ -19,7 +19,7 @@
 
 手でトレイを傾けるように、マウスドラッグでビー玉を転がします。ビー玉に付いた絵の具が用紙に転写され、転がるほどかすれ、壁や玉同士の衝突で飛び散ります。3D 視界 (360度カメラ操作) と 2D 俯瞰を切り替えられ、高解像度 PNG と 60fps の MP4 動画で書き出せます。
 
-もともと 1 ファイル (約 3000 行) の `index.html` だったものを、React + TypeScript に分割しました。元のファイルは [legacy/marble-studio.legacy.html](legacy/marble-studio.legacy.html) に残してあります。UI は p5-react-template のグラスモルフィズム (半透明 + blur) に合わせています。
+もともと 1 ファイル (約 3000 行) の `index.html` だったものを、React + TypeScript に分割しました。UI は p5-react-template のグラスモルフィズム (半透明 + blur) に合わせています。
 
 ## 2. 仕組み
 
@@ -53,8 +53,6 @@ rolling-marble-canvas/
 ├── README.md
 ├── docs/
 │   └── screenshot.png
-├── legacy/
-│   └── marble-studio.legacy.html   - 分割前の単一ファイル版 (参照用)
 ├── output/                         - 保存した画像・動画・JSON の置き場 (中身は Git 管理外)
 ├── tests/                          - Vitest のテスト
 └── src/
