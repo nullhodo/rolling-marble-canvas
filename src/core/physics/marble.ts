@@ -108,16 +108,13 @@ export class Marble {
     }
 
     // 紙面の微細な凹凸: パーリンノイズによる局所勾配
-    const surfaceAngle =
-      noise(
-        (this.x + this.surfaceSeed) * 0.015,
-        (this.y + this.surfaceSeed) * 0.015,
-      ) *
-      Math.PI *
-      4;
     const surfaceMagnitude = settings.surfaceNoiseStrength * 0.25;
-    const surfaceForceX = Math.cos(surfaceAngle) * surfaceMagnitude;
-    const surfaceForceY = Math.sin(surfaceAngle) * surfaceMagnitude;
+    const noiseX = (this.x + this.surfaceSeed) * 0.015;
+    const noiseY = (this.y + this.surfaceSeed) * 0.015;
+    const surfaceForceX =
+      (noise(noiseX, noiseY) - 0.5) * 2 * surfaceMagnitude;
+    const surfaceForceY =
+      (noise(noiseX + 31.7, noiseY + 57.3) - 0.5) * 2 * surfaceMagnitude;
 
     // インクの粘性抵抗
     const inkViscosityDrag = 1.0 - this.remainingInkLevel * 0.015;

@@ -67,6 +67,15 @@ export function createMarbleSketch(bridge: SketchBridge): {
   let tiltPitch = 0;
   let tiltRoll = 0;
   let autoTiltTime = 0;
+  const tiltPhases = Array.from(
+    { length: 6 },
+    () => Math.random() * Math.PI * 2,
+  );
+  const swing = (time: number, offset: number) =>
+    (Math.sin(time + tiltPhases[offset]) +
+      0.7 * Math.sin(time * 0.63 + tiltPhases[offset + 1]) +
+      0.4 * Math.sin(time * 1.7 + tiltPhases[offset + 2])) /
+    2.1;
   let warmupSteps = import.meta.env.DEV
     ? Number(new URLSearchParams(location.search).get("warmup")) || 0
     : 0;
@@ -175,7 +184,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
       if (settings.isThreeDimensionalView) {
         p.perspective(Math.PI / 3.4, p.width / p.height, 10, 6000);
 
-        // 球面座標でカメラ位置を決める。用紙は XY 平面、天面は +Z、Up は (0, 0, 1)
+        // 球面座標でカメラ位置を決める。用紙は XY 平面、天面は +Z。p5 は画面の下が +Y なので、Up は (0, 0, -1)
         const yaw = (settings.cameraYawDegrees * Math.PI) / 180;
         const pitch = (settings.cameraPitchDegrees * Math.PI) / 180;
         const distance = settings.cameraDistancePixels;
@@ -188,7 +197,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
           0,
           0,
           0,
-          1,
+          -1,
         );
 
         applyLights();
@@ -346,24 +355,27 @@ export function createMarbleSketch(bridge: SketchBridge): {
         rebuildMarbles(true);
       }
 
-      // 1. トレイ傾斜 (自動揺動 + 手動ドラッグ)
+      // 1. トレイ傾斜 (自動揺動 + 手動ドラッグ) と、2. 物理更新・インク描画
+      const steps = 1 + warmupSteps;
+      warmupSteps = 0;
       let gravityX = 0;
       let gravityY = 0;
-      if (settings.autoTiltEnabled) {
-        autoTiltTime += 0.011;
-        const angle = p.noise(autoTiltTime) * Math.PI * 4;
-        const magnitude =
-          (p.noise(autoTiltTime + 100) - 0.5) *
-          2 *
-          settings.tiltForceMultiplier *
-          settings.autoTiltIntensity *
-          0.6;
-        gravityX += Math.cos(angle) * magnitude;
-        gravityY += Math.sin(angle) * magnitude;
-      }
-      if (isDragging && isTiltDrag(settings)) {
-        gravityX += manualTilt.x * settings.tiltForceMultiplier * 0.8;
-        gravityY += manualTilt.y * settings.tiltForceMultiplier * 0.8;
+      for (let step = 0; step < steps; step++) {
+        gravityX = 0;
+        gravityY = 0;
+        if (settings.autoTiltEnabled) {
+          autoTiltTime += 0.018;
+          // X と Y を、位相の違う正弦波の合成で動かす。平均が 0 なので傾く向きが偏らない
+          const strength =
+            settings.tiltForceMultiplier * settings.autoTiltIntensity;
+          gravityX += swing(autoTiltTime, 0) * strength;
+          gravityY += swing(autoTiltTime, 3) * strength;
+        }
+        if (isDragging && isTiltDrag(settings)) {
+          gravityX += manualTilt.x * settings.tiltForceMultiplier * 0.8;
+          gravityY += manualTilt.y * settings.tiltForceMultiplier * 0.8;
+        }
+        advance(settings, gravityX, gravityY);
       }
 
       const targetRoll = (gravityX / settings.tiltForceMultiplier) * 0.16;
@@ -371,13 +383,6 @@ export function createMarbleSketch(bridge: SketchBridge): {
         -(gravityY / settings.tiltForceMultiplier) * 0.16;
       tiltRoll += (targetRoll - tiltRoll) * 0.12;
       tiltPitch += (targetPitch - tiltPitch) * 0.12;
-
-      // 2. 物理更新と、インク軌跡・飛沫の描画
-      const steps = 1 + warmupSteps;
-      warmupSteps = 0;
-      for (let step = 0; step < steps; step++) {
-        advance(settings, gravityX, gravityY);
-      }
 
       // 3. カメラ・ライティング・シーン描画
       applyCamera(settings);
