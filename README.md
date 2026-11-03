@@ -84,7 +84,7 @@ rolling-marble-canvas/
     │       ├── inkPainter.ts       - インク軌跡・遠心スプラッシュ・衝突スプラッターの描画
     │       ├── marbleRenderer.ts   - ガラス球 (3D / 2D)
     │       ├── trayRenderer.ts     - 木枠トレイ・用紙・グレイン
-    │       ├── handsRenderer.ts    - トレイを持つ手
+    │       ├── handsRenderer.ts    - トレイを持つ手 (3D のみ)
     │       └── debugRenderer.ts    - 物理デバッグ表示
     ├── components/                 - ControlPanel と各セクション、録画 HUD、トースト
     ├── hooks/
@@ -118,6 +118,7 @@ rolling-marble-canvas/
 | `?warmup=<N>` | 最初のフレームで物理を N ステップ早送りし、軌跡が描かれた状態から始める |
 | `?ff=<N>` | 毎フレーム物理を N ステップ余分に進める。連続フレームのキャプチャ用 |
 | `?panel=0` | 設定パネルを閉じた状態で開く |
+| `?view=2d` | 2D 俯瞰表示で開く |
 
 ## 5. 操作方法
 

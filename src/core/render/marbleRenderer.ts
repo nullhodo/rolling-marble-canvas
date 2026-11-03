@@ -27,7 +27,9 @@ export function drawMarble3D(
   p.pop();
 }
 
-/** 2D 俯瞰: 影・ガラス球・内部のスワール・ハイライト */
+const SHADE_LAYERS = 6;
+
+/** 2D 俯瞰: 柔らかい影・奥行きのある濃淡・窓映りのハイライト */
 export function drawMarble2D(
   p: p5,
   marble: Marble,
@@ -41,21 +43,42 @@ export function drawMarble2D(
   p.translate(marble.x - trayWidth * 0.5, marble.y - trayHeight * 0.5, 1);
 
   p.noStroke();
-  p.fill(15, 12, 10, 80);
-  p.ellipse(radius * 0.2, radius * 0.3, radius * 2.2, radius * 1.8);
 
-  p.fill(rgb.red, rgb.green, rgb.blue, 240);
-  p.circle(0, 0, radius * 2);
+  // 接地影: 小さく濃い影の外側に、広く淡い影を重ねる
+  for (let layer = 0; layer < 4; layer++) {
+    p.fill(20, 16, 12, 16);
+    const spread = 1.7 + layer * 0.22;
+    p.ellipse(
+      radius * 0.3,
+      radius * 0.4,
+      radius * spread,
+      radius * spread * 0.92,
+    );
+  }
 
-  p.rotate(marble.rotationAngleX + marble.rotationAngleY);
-  p.noFill();
-  p.stroke(255, 255, 255, 150);
-  p.strokeWeight(radius * 0.22);
-  p.arc(0, 0, radius * 1.2, radius * 1.2, 0, Math.PI * 1.2);
+  // 球の濃淡: 暗い縁から、左上へずらしながら明るい芯へ重ねる
+  for (let layer = 0; layer < SHADE_LAYERS; layer++) {
+    const ratio = layer / (SHADE_LAYERS - 1);
+    const shade = 0.62 + ratio * 0.5;
+    const lift = ratio * 255 * 0.12;
+    p.fill(
+      Math.min(255, rgb.red * shade + lift),
+      Math.min(255, rgb.green * shade + lift),
+      Math.min(255, rgb.blue * shade + lift),
+    );
+    const size = radius * 2 * (1 - ratio * 0.5);
+    const shift = -radius * 0.2 * ratio;
+    p.circle(shift, shift, size);
+  }
 
-  p.noStroke();
-  p.fill(255, 255, 255, 210);
-  p.circle(-radius * 0.35, -radius * 0.35, radius * 0.55);
+  // 窓の映り込み: 左上の小さな楕円と、右下の縁に回り込む反射光
+  p.push();
+  p.rotate(-0.7);
+  p.fill(255, 255, 255, 215);
+  p.ellipse(-radius * 0.1, -radius * 0.52, radius * 0.5, radius * 0.24);
+  p.pop();
+  p.fill(255, 255, 255, 55);
+  p.circle(radius * 0.42, radius * 0.46, radius * 0.22);
 
   p.pop();
 }

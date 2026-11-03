@@ -13,7 +13,7 @@ import type { Marble } from "./physics/marble";
 import { MarbleSimulation } from "./physics/simulation";
 import { calculateTrayBounds } from "./physics/tray";
 import { drawDebugOverlay } from "./render/debugRenderer";
-import { drawHands2D, drawHands3D } from "./render/handsRenderer";
+import { drawHands3D } from "./render/handsRenderer";
 import {
   paintCentrifugalSplash,
   paintSplatter,
@@ -224,7 +224,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
 
         applyLights();
       } else {
-        // 真上から見下ろす。Y 軸正が画面下
+        // 真上から見下ろす。p5 の既定どおり、Y 軸正が画面下
         p.ortho(
           -p.width / 2,
           p.width / 2,
@@ -233,7 +233,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
           0.1,
           4000,
         );
-        p.camera(0, 0, 1000, 0, 0, 0, 0, -1, 0);
+        p.camera(0, 0, 1000, 0, 0, 0, 0, 1, 0);
         p.ambientLight(255, 255, 255);
       }
     };
@@ -436,7 +436,6 @@ export function createMarbleSketch(bridge: SketchBridge): {
         for (const marble of simulation.marbles) {
           drawMarble2D(p, marble, bounds.width, bounds.height);
         }
-        if (settings.isHandsVisible) drawHands2D(p, bounds);
       }
       p.pop();
 

@@ -14,7 +14,14 @@ import type {
   Toast,
 } from "../types/simulation";
 
-export const settingsAtom = atom<SimulationSettings>(DEFAULT_SETTINGS);
+const INITIAL_SETTINGS: SimulationSettings = {
+  ...DEFAULT_SETTINGS,
+  isThreeDimensionalView:
+    !import.meta.env.DEV ||
+    new URLSearchParams(location.search).get("view") !== "2d",
+};
+
+export const settingsAtom = atom<SimulationSettings>(INITIAL_SETTINGS);
 export const palettesAtom = atom<Palette[]>(PRESET_PALETTES);
 
 export const historyStackAtom = atom<SimulationSettings[]>([

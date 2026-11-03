@@ -63,34 +63,3 @@ export function drawHands3D(p: p5, bounds: TrayBounds): void {
     p.pop();
   }
 }
-
-/** 2D 俯瞰: 木枠の左右を押さえる手 */
-export function drawHands2D(p: p5, bounds: TrayBounds): void {
-  const halfWidth = bounds.width * 0.5;
-  const border = bounds.borderThickness;
-
-  for (const side of HAND_SIDES) {
-    p.push();
-    p.translate((halfWidth + border) * side, 20, 2);
-    p.noStroke();
-
-    p.fill("#2D3748");
-    p.rect(side > 0 ? 30 : -85, 20, 55, 60, 8);
-
-    p.fill("#C3947A");
-    p.rect(side > 0 ? 5 : -55, 0, 50, 48, 12);
-
-    p.fill("#E4B69A");
-    p.ellipse(side * -8, -10, 24, 34);
-
-    p.fill("#F2CCB8");
-    p.ellipse(side * -10, -18, 12, 14);
-
-    p.fill("#C3947A");
-    p.ellipse(side * 2, -26, 12, 16);
-    p.ellipse(side * 3, 14, 12, 16);
-    p.ellipse(side * 4, 32, 11, 15);
-
-    p.pop();
-  }
-}
