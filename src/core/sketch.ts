@@ -80,6 +80,9 @@ export function createMarbleSketch(bridge: SketchBridge): {
       0.7 * Math.sin(time * 0.63 + tiltPhases[offset + 1]) +
       0.4 * Math.sin(time * 1.7 + tiltPhases[offset + 2])) /
     2.1;
+  const fastForwardSteps = import.meta.env.DEV
+    ? Number(new URLSearchParams(location.search).get("ff")) || 0
+    : 0;
   let warmupSteps = import.meta.env.DEV
     ? Number(new URLSearchParams(location.search).get("warmup")) || 0
     : 0;
@@ -365,7 +368,7 @@ export function createMarbleSketch(bridge: SketchBridge): {
       }
 
       // 1. トレイ傾斜 (自動揺動 + 手動ドラッグ) と、2. 物理更新・インク描画
-      const steps = 1 + warmupSteps;
+      const steps = 1 + warmupSteps + fastForwardSteps;
       warmupSteps = 0;
       let gravityX = 0;
       let gravityY = 0;
